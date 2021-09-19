@@ -1,73 +1,92 @@
-class my_app():
+class App:
 
     # count for entity instances
-    clients_number = -1
-    drivers_number = -1
-    trips_numbers = -1
-    cars_numbers = -1
-    autoparks_numbers = -1
-    rates_numbers = -1
+    clients_number = 0
+    drivers_number = 0
+    trips_numbers = 0
+    autoparks_numbers = 0
 
     # lists for their important attributes
     clients_id = []
     drivers_id = []
     trips_id = []
-    cars_id = []
+    cars_numbers = []
     autoparks_id = []
-    rates_names = set()
-
+    rates_set = set()
 
     def __init__(self, name):
         self.name = name
 
 
-class Client():
-    def __init__(self, my_app: my_app, name, rating, avatar, premium):
-        my_app.clients_number += 1
+class Client:
+    def __init__(self, my_app: App, name, rating, premium):
         my_app.clients_id.append(my_app.clients_number)
         self.client_id = my_app.clients_id[my_app.clients_number]
+        my_app.clients_number += 1
         self.name = name
-        self.rating = rating  # can be from 1 to 5
-        self.avatar = avatar
+        self.rating = round(rating, 2)  # can be from 1 to 5
         self.premium = premium
 
 
-class Driver():
-    def __init__(self, my_app: my_app, name, rating, avatar, experience, cars_number, autopark_id):
-        my_app.drivers_number += 1
-        my_app.drivers_id.append(my_app.drivers_number)
-        self.driver_id = my_app.clients_id[my_app.drivers_number]
+class Taxipark:
+    cars_numbers = []
+    drivers_list = []
+
+    def __init__(self, my_app: App, name):
         self.name = name
-        self.rating = rating
-        self.avarat = avatar
+        self.autopark_id = my_app.autoparks_numbers
+        my_app.autoparks_id.append(self.autopark_id)
+        my_app.autoparks_numbers += 1
+
+
+class Driver:
+    def __init__(self, my_app: App, name, rating, experience, car_number, autopark: Taxipark):
+        my_app.drivers_id.append(my_app.drivers_number)
+        self.driver_id = my_app.drivers_id[my_app.drivers_number]
+        my_app.drivers_number += 1
+        self.name = name
+        self.rating = round(rating, 2)
         self.experience = experience
-        self.cars_numbers = cars_number
-        self.autopark_id = autopark_id
+        self.car_number = car_number
+        self.autopark_id = autopark.autopark_id
+        autopark.cars_numbers.append(self.car_number)
+        autopark.drivers_list.append(self.name)
+        my_app.cars_numbers.append(self.car_number)
 
 
-class Rates():
-    def __init__(self, my_app: my_app, name, min_price, coef, car_list):
-        my_app.rates_numbers += 1
-        my_app.rates_names.add(name)
+class Rates:
+    def __init__(self, my_app: App, name, min_price):
+        my_app.rates_set.add(name)
         self.name = name
         self.min_price = min_price
-        self.coef = coef
-        self.car_list = car_list
 
 
-class Trip():
-    def __init__(self, my_app: my_app, my_client: Client, my_driver: Driver, my_rates: Rates, time, distance):
-        my_app.trips_numbers += 1
+class Trip:
+    def __init__(self, my_app: App, my_client: Client, my_driver: Driver, my_rates: Rates, date, time, distance):
         my_app.trips_id.append(my_app.trips_numbers)
-        self.trip_id = my_app.trips_numbers[my_app.trips_numbers]
+        self.trip_id = my_app.trips_numbers
+        my_app.trips_numbers += 1
         self.driver_id = my_driver.driver_id
         self.client_id = my_client.client_id
         self.my_rates = my_rates.name
+        self.date = date
         self.time = time
         self.distance = distance
-        # I dont know really equation of price, is just my things
-        self.price = my_rates.coef * my_rates.min_price / my_client.rating
 
+        if distance <= 1:
+            self.coef = 1
+        elif distance <= 3:
+            self.coef = 1.5
+        elif distance <= 6:
+            self.coef = 1.8
+        elif distance <= 10:
+            self.coef = 2
+        elif distance > 10:
+            self.coef = 5
 
-class Autopark(my_app):
+        # I really don't know the true equation
+        if my_client.premium != True:
+            self.price = round(self.coef*my_rates.min_price/(my_client.rating*0.2), 2)
+        else:
+            self.price = round(self.coef*my_rates.min_price/(my_client.rating*0.4), 2)
 
